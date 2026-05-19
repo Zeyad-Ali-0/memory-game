@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Game Code — Line-by-Line Explanation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0d0f14;
+    --panel: #13161e;
+    --border: #1e2330;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #a8ff78;
+    --text: #c9d1e0;
+    --dim: #5a6378;
+    --code-bg: #090b10;
+    --highlight: #1a1f2e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  header {
+    background: linear-gradient(135deg, #0d0f14 0%, #13161e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 40px 60px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+
+  header p {
+    font-size: 0.8rem;
+    color: var(--dim);
+    margin-top: 2px;
+  }
+
+  .chip {
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px 60px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky;
+    top: 97px;
+    z-index: 99;
+  }
+
+  nav a {
+    color: var(--dim);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+
+  nav a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(0,229,255,0.06);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 40px 80px;
+  }
+
+  .file-section {
+    margin-bottom: 60px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .file-header {
+    background: var(--panel);
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .file-header .filename {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent2);
+  }
+
+  .file-header .file-desc {
+    font-size: 0.8rem;
+    color: var(--dim);
+  }
+
+  .file-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent2);
+    flex-shrink: 0;
+  }
+
+  .block {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .block:last-child { border-bottom: none; }
+
+  .block-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .block-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: #a8b8d8;
+    overflow-x: auto;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+
+  .line-explain {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 700px) {
+    .line-explain { grid-template-columns: 1fr; }
+    header, nav { padding-left: 20px; padding-right: 20px; }
+    .container { padding: 24px 16px 60px; }
+    .block { padding: 18px 16px; }
+  }
+
+  .line-code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: #c9d1e0;
+    word-break: break-all;
+  }
+
+  .line-text {
+    background: var(--highlight);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: var(--text);
+  }
+
+  .callout {
+    background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 0.83rem;
+    margin-top: 12px;
+    color: var(--text);
+  }
+
+  .callout strong {
+    color: var(--accent);
+  }
+
+  .warn {
+    background: rgba(255,107,53,0.07);
+    border-color: rgba(255,107,53,0.3);
+  }
+
+  .warn strong { color: var(--accent2); }
+
+  .good {
+    background: rgba(168,255,120,0.06);
+    border-color: rgba(168,255,120,0.25);
+  }
+
+  .good strong { color: var(--accent3); }
+
+  .inline-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: var(--accent2);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  .tag-ddr  { background: rgba(255,107,53,0.15); color: var(--accent2); border: 1px solid rgba(255,107,53,0.3); }
+  .tag-port { background: rgba(0,229,255,0.1);   color: var(--accent);  border: 1px solid rgba(0,229,255,0.3); }
+  .tag-pin  { background: rgba(168,255,120,0.1); color: var(--accent3); border: 1px solid rgba(168,255,120,0.3); }
+  .tag-loop { background: rgba(180,100,255,0.1); color: #c890ff;        border: 1px solid rgba(180,100,255,0.3); }
+  .tag-flow { background: rgba(255,200,0,0.1);   color: #ffd060;        border: 1px solid rgba(255,200,0,0.3); }
+  .tag-init { background: rgba(0,229,255,0.07);  color: #60c0ff;        border: 1px solid rgba(0,100,200,0.3); }
+
+  p.explain {
+    font-size: 0.85rem;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.75;
+  }
+
+  h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--accent3);
+    margin: 18px 0 8px;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🎮 Game Code — Complete Line-by-Line Explanation</h1>
+    <p>AVR / Arduino · DDR · PORT · PIN · Buttons · LEDs · Game Modes</p>
+  </div>
+  <span class="chip">ARDUINO</span>
+</header>
+
+<nav>
+  <a href="#config">config2.h</a>
+  <a href="#hardware">hardware.h</a>
+  <a href="#main">main_file.ino</a>
+  <a href="#keypad">keypad.ino</a>
+  <a href="#lcd">lcd_screen.ino</a>
+  <a href="#leds">leds.ino</a>
+  <a href="#menu">menu.ino</a>
+  <a href="#mode1">mode_1.ino</a>
+  <a href="#mode2">mode_2.ino</a>
+  <a href="#mode3">mode_3.ino</a>
+</nav>
+
+<div class="container">
+
+<!-- ═══════════════════════════ CONCEPTS BOX ═══════════════════════════ -->
+<div class="file-section" id="concepts" style="margin-bottom:40px">
+  <div class="file-header">
+    <div class="file-dot" style="background:var(--accent)"></div>
+    <span class="filename" style="color:var(--accent)">⚡ Core AVR Concepts (Read This First)</span>
+  </div>
+  <div class="block">
+    <div class="block-title">DDR, PORT, and PIN — The Three Registers</div>
+    <p class="explain">Every physical pin on the ATmega328 (the chip inside an Arduino) is controlled by three 8-bit hardware registers. You choose a register by picking the correct letter (B, C, or D for the three ports).</p>
+
+    <div class="line-explain">
+      <div class="line-code"><span class="tag tag-ddr">DDR</span> Data Direction Register</div>
+      <div class="line-text"><strong>Sets the direction.</strong> Write <span class="inline-code">1</span> to a bit → that pin becomes an <em>output</em>. Write <span class="inline-code">0</span> → it becomes an <em>input</em>.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code"><span class="tag tag-port">PORT</span> Data Register</div>
+      <div class="line-text">If the pin is an <strong>output</strong>: write 1 = HIGH (LED on), write 0 = LOW (LED off).<br>If the pin is an <strong>input</strong>: write 1 = enable the internal pull-up resistor.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code"><span class="tag tag-pin">PIN</span> Input Register</div>
+      <div class="line-text"><strong>Read only.</strong> Reading this tells you the current state of the physical pin. If a button is pressed (pulls it to GND), the bit reads 0. If released (pull-up holds it HIGH), the bit reads 1.</div>
+    </div>
+
+    <div class="callout" style="margin-top:16px">
+      <strong>Why is pressed = 0 (LOW)?</strong><br>
+      Because of the <em>input pull-up</em> configuration. The internal pull-up resistor holds the pin at 3.3–5V (HIGH = 1) by default. When you press a button wired to GND, it pulls the pin to 0V (LOW = 0). So: <strong>0 = pressed, 1 = released.</strong>
+    </div>
+
+    <hr class="divider">
+    <div class="block-title">Bit Manipulation</div>
+    <div class="line-explain">
+      <div class="line-code">REG |= (1 &lt;&lt; n)</div>
+      <div class="line-text">Sets bit <em>n</em> to 1 without touching any other bits. Used to turn an LED ON or set a pin to output.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">REG &= ~(1 &lt;&lt; n)</div>
+      <div class="line-text">Clears bit <em>n</em> to 0 without touching any other bits. Used to turn an LED OFF or set a pin to input.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">(REG &amp; (1 &lt;&lt; n)) == 0</div>
+      <div class="line-text">Checks if bit <em>n</em> is 0 (button pressed in pull-up config). The <span class="inline-code">&amp;</span> masks all other bits away so only bit n remains.</div>
+    </div>
+    <div class="callout warn">
+      <strong>Example:</strong> If n=2, then <span class="inline-code">(1 &lt;&lt; 2)</span> = <span class="inline-code">00000100</span>. ANDing with PIND isolates only pin 2. If the result is 0, pin 2 is LOW = button pressed.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ config2.h ═══════════════════════════ -->
+<div class="file-section" id="config">
+  <div class="file-header">
+    <div class="file-dot"></div>
+    <div>
+      <div class="filename">config2.h</div>
+      <div class="file-desc">Global constants — numbers that never change during the game</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">INIT</span> Constants</div>
+    <div class="line-explain">
+      <div class="line-code">#define NUM_OF_ITERATIONS 5</div>
+      <div class="line-text">Every game mode runs exactly <strong>5 rounds</strong>. Using a #define means the compiler replaces every use of this name with the literal number 5 — no variable needed, no RAM used.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define BlinkTime 500</div>
+      <div class="line-text">Each LED stays lit for <strong>500 ms</strong> during sequences. Also used for the startup blink animation.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define ROUND_TIMEOUT 15000</div>
+      <div class="line-text">If a player takes more than <strong>15 seconds</strong> without finishing, the round is automatically ended. Used in modes 2 and 3.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define DEBOUNCE_TIME 30</div>
+      <div class="line-text">After detecting a button press, the code waits <strong>30 ms</strong> and re-checks. This ignores the electrical noise ("bouncing") that mechanical buttons produce when they make/break contact.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define DIFFICULTY_LEVEL 3</div>
+      <div class="line-text">The starting sequence length is <strong>3 LEDs</strong>. It increases by 1 on each successful round.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define NUM_OF_BTNS_PER_PLAYER 4</div>
+      <div class="line-text">Each player has exactly <strong>4 buttons</strong>. Loops use this to know when to stop iterating.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ hardware.h ═══════════════════════════ -->
+<div class="file-section" id="hardware">
+  <div class="file-header">
+    <div class="file-dot"></div>
+    <div>
+      <div class="filename">hardware.h</div>
+      <div class="file-desc">Pin assignments — maps logical names to physical AVR ports and pins</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-ddr">PLAYER 1</span> Port D Buttons (Arduino pins D2–D5)</div>
+    <div class="line-explain">
+      <div class="line-code">#define BTN_ARRAY_ONE {2, 3, 4, 5}</div>
+      <div class="line-text">Player 1's buttons are on <strong>Port D, bits 2, 3, 4, 5</strong>. These correspond to Arduino digital pins D2–D5. Stored as an array so loops can iterate over them.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define BTN_DDR  DDRD</div>
+      <div class="line-text">The Data Direction Register for Port D. Writing 0 to a bit here makes that pin an <em>input</em>.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define BTN_PORT PORTD</div>
+      <div class="line-text">The output/pull-up register for Port D. Writing 1 to an input pin bit enables the pull-up resistor.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define BTN_PIN  PIND</div>
+      <div class="line-text">The read register for Port D. The code reads this to find out if a button is physically pressed.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-ddr">PLAYER 2</span> Port B Buttons (Arduino pins D8–D11)</div>
+    <div class="line-explain">
+      <div class="line-code">#define BTN_ARRAY_TWO {0, 1, 2, 3}</div>
+      <div class="line-text">Player 2's buttons are on <strong>Port B, bits 0, 1, 2, 3</strong>. These correspond to Arduino digital pins D8–D11. Note: Port B bit 0 = Arduino pin 8, bit 1 = pin 9, etc.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define BTN_2_DDR  DDRB</div>
+      <div class="line-text">Direction register for Port B. Player 2's pins will be set to input here.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define BTN_2_PORT PORTB</div>
+      <div class="line-text">Pull-up register for Port B. Writing 1 here activates the pull-up for Player 2's button pins.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define BTN_2_PIN  PINB</div>
+      <div class="line-text">Read register for Port B. Used to detect Player 2 button presses.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define NUM_OF_BTNS 8</div>
+      <div class="line-text">Total buttons in the game (4 per player × 2 players). Defined for reference but most loops use <span class="inline-code">NUM_OF_BTNS_PER_PLAYER</span>.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-port">LEDS</span> Port C (Analog pins A0–A3)</div>
+    <div class="line-explain">
+      <div class="line-code">#define LED_ARRAY {0, 1, 2, 3}</div>
+      <div class="line-text">The 4 LEDs use <strong>Port C, bits 0–3</strong>, which are Arduino's analog pins A0–A3. They're used as digital outputs here.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define LED_DDR  DDRC</div>
+      <div class="line-text">Direction register for Port C. Setting bits here to 1 makes the LED pins outputs.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define LED_PORT PORTC</div>
+      <div class="line-text">Output register for Port C. Writing 1 to a bit turns the corresponding LED on; writing 0 turns it off.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define LED_PIN  PINC</div>
+      <div class="line-text">Read register for Port C. Defined for completeness — LEDs are output-only, so this register isn't read in this project.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#define NUM_OF_LEDS 4</div>
+      <div class="line-text">Total number of LEDs. Used in all loops that iterate over LEDs.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ main_file.ino ═══════════════════════════ -->
+<div class="file-section" id="main">
+  <div class="file-header">
+    <div class="file-dot" style="background:#a8ff78"></div>
+    <div>
+      <div class="filename" style="color:#a8ff78">main_file.ino</div>
+      <div class="file-desc">Program entry point — setup(), global variables, main loop with state machine</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">INCLUDES</span> Libraries and headers</div>
+    <div class="line-explain">
+      <div class="line-code">#include "hardware.h"<br>#include "config2.h"</div>
+      <div class="line-text">Pulls in the pin definitions and constants. Because all .ino files are compiled together, every other file uses <span class="inline-code">extern</span> to reference these — they're only <em>defined</em> (included) here to avoid duplicate definitions.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">#include &lt;Wire.h&gt;<br>#include &lt;LiquidCrystal_I2C.h&gt;</div>
+      <div class="line-text">Wire.h provides I²C communication. LiquidCrystal_I2C.h wraps it to control the LCD screen via just two wires (SDA + SCL) instead of 6–10 individual pins.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">LiquidCrystal_I2C lcd(0x27, 16, 2);</div>
+      <div class="line-text">Creates the LCD object. <span class="inline-code">0x27</span> is the I²C address of the display. <span class="inline-code">16</span> = 16 columns, <span class="inline-code">2</span> = 2 rows. This is the real hardware address (0x3E was for SimulIDE).</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">GLOBALS</span> Shared game-state variables</div>
+    <div class="line-explain">
+      <div class="line-code">int currentState = 0;</div>
+      <div class="line-text">The main state variable. <strong>0 = menu, 1 = Solo, 2 = Duel, 3 = Challenger.</strong> The main loop's switch reads this every iteration to decide which mode to run. Other files declare it with <span class="inline-code">extern int currentState</span> to share it.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">int pass = 0;<br>int fail = 0;<br>long totalTime = 0;<br>int difficulty_level = DIFFICULTY_LEVEL;</div>
+      <div class="line-text">Mode 1 state. <span class="inline-code">pass</span> and <span class="inline-code">fail</span> count rounds won/lost. <span class="inline-code">totalTime</span> accumulates milliseconds to compute average reaction time. <span class="inline-code">difficulty_level</span> starts at 3 and grows.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">int p1Score = 0;<br>int p2Score = 0;</div>
+      <div class="line-text">Scores for Modes 2 and 3. Reset to 0 each time a mode is entered. Other files use <span class="inline-code">extern</span> to see and modify these.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">SETUP</span> void setup() — runs once at power-on</div>
+    <div class="line-explain">
+      <div class="line-code">Serial.begin(9600);</div>
+      <div class="line-text">Opens the serial port at 9600 baud for debug printing. The <span class="inline-code">Serial.println(F("..."))</span> calls throughout the code send text to a computer screen during simulation/development.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">randomSeed(analogRead(A5));</div>
+      <div class="line-text">Seeds the random number generator using electrical noise on the unconnected analog pin A5. Each power-on gives a different floating voltage → different seed → different random sequences every game.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">intializeKeypad();<br>intializeKeypad2();<br>initializeLEDs();<br>setup_LCD_SCREEN();</div>
+      <div class="line-text">Calls the initialization functions defined in other .ino files. Sets up DDR registers for buttons and LEDs, and boots the LCD screen. Must happen before anything uses those peripherals.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">turnOnAll(); _delay_ms(500);<br>turnOffAll(); _delay_ms(500);<br>turnOnAll(); _delay_ms(500);<br>turnOffAll(); _delay_ms(2500);</div>
+      <div class="line-text"><strong>Startup blink sequence.</strong> All 4 LEDs flash on→off→on→off using <span class="inline-code">BlinkTime</span> (500 ms). The final 2500 ms pause gives the player time to read the LCD before the menu appears.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">Serial.println(F("=== Game Start ==="));</div>
+      <div class="line-text">The <span class="inline-code">F()</span> macro stores the string in flash memory instead of RAM. Since the ATmega328 has only 2KB of SRAM, using <span class="inline-code">F()</span> for every constant string prevents running out of RAM.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">LOOP</span> void loop() — runs forever, state machine</div>
+    <p class="explain">The Arduino framework calls <span class="inline-code">loop()</span> repeatedly and forever. Instead of a complex chain of conditions, a <strong>switch-case state machine</strong> keeps the code clean — each case handles one mode and then returns to the menu.</p>
+    <div class="line-explain">
+      <div class="line-code">switch (currentState) { ... }</div>
+      <div class="line-text">Reads <span class="inline-code">currentState</span> and jumps to the matching case. When the player picks a mode from the menu, <span class="inline-code">currentState</span> is set to 1, 2, or 3, so on the very next call to <span class="inline-code">loop()</span> the correct case executes.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">case 0: menuFunction(); break;</div>
+      <div class="line-text"><strong>Default state.</strong> Shows the menu and waits for a button. <span class="inline-code">break</span> exits the switch statement and loop() returns, then Arduino immediately calls loop() again — so menuFunction() is called over and over until the player presses something.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">case 1:<br>  pass = 0; fail = 0; totalTime = 0;<br>  difficulty_level = DIFFICULTY_LEVEL;<br>  playmode1();<br>  currentState = 0;<br>  break;</div>
+      <div class="line-text"><strong>Solo Mode.</strong> Variables are <em>reset first</em> (so starting a new game doesn't carry over old scores). Then <span class="inline-code">playmode1()</span> runs its own internal loop for all 5 rounds. When it <em>returns</em>, <span class="inline-code">currentState</span> is set back to 0 (menu), and <span class="inline-code">break</span> exits the switch. Next call to loop() goes back to the menu.</div>
+    </div>
+    <div class="callout warn">
+      <strong>break vs return — why this matters:</strong><br>
+      <span class="inline-code">break</span> exits only the nearest enclosing switch or loop. Here it exits the <span class="inline-code">switch</span>, loop() finishes, and Arduino calls loop() again immediately.<br>
+      <span class="inline-code">return</span> would exit the function (loop()) itself — same effect here, but semantically different. Inside <span class="inline-code">playmode1()</span>, a <span class="inline-code">break</span> exits <em>that function's inner loop</em>, not the outer switch in loop().
+    </div>
+    <div class="line-explain">
+      <div class="line-code">case 2: ... playmode2(); currentState=0; break;<br>case 3: ... runChallengerMode(); currentState=0; break;</div>
+      <div class="line-text">Same pattern as case 1. Each mode resets its scores, runs its full game, then hands control back to the menu.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">default: currentState = 0; break;</div>
+      <div class="line-text">Safety net. If <span class="inline-code">currentState</span> ever gets a value that isn't 0–3 (e.g. memory corruption), this resets it to menu. Prevents the game from being stuck in an undefined state.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ keypad.ino ═══════════════════════════ -->
+<div class="file-section" id="keypad">
+  <div class="file-header">
+    <div class="file-dot" style="background:#ff6b35"></div>
+    <div>
+      <div class="filename" style="color:#ff6b35">keypad.ino</div>
+      <div class="file-desc">Button initialization and reading — input pull-up, debounce, press detection</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">INIT</span> intializeKeypad() — Player 1 buttons (Port D)</div>
+    <pre>void intializeKeypad() {
+  for (int i = 0; i &lt; NUM_OF_BTNS_PER_PLAYER; i++) {
+    BTN_DDR  &amp;= ~(1 &lt;&lt; btns1[i]);   // set as INPUT
+    BTN_PORT |=  (1 &lt;&lt; btns1[i]);   // enable PULL-UP
+  }
+}</pre>
+    <div class="line-explain">
+      <div class="line-code">int btns1[] = BTN_ARRAY_ONE;</div>
+      <div class="line-text">Expands to <span class="inline-code">{2, 3, 4, 5}</span> — the 4 bit positions in Port D for Player 1's buttons.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">for (int i = 0; i &lt; NUM_OF_BTNS_PER_PLAYER; i++)</div>
+      <div class="line-text">Loops i = 0, 1, 2, 3 — one iteration per button. This way you don't have to write the same register operation 4 times.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">BTN_DDR &amp;= ~(1 &lt;&lt; btns1[i]);</div>
+      <div class="line-text"><span class="tag tag-ddr">DDR</span> <strong>Sets pin as INPUT.</strong> <span class="inline-code">(1 &lt;&lt; btns1[i])</span> creates a mask with only bit i set. <span class="inline-code">~</span> inverts it (all 1s except bit i). <span class="inline-code">&amp;=</span> clears that bit in DDRD. A 0 in DDR = input direction.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">BTN_PORT |= (1 &lt;&lt; btns1[i]);</div>
+      <div class="line-text"><span class="tag tag-port">PORT</span> <strong>Enables the internal pull-up resistor.</strong> Writing 1 to a pin that is already set as input activates the pull-up. This holds the pin at ~5V (HIGH/1) when the button is open, so pressing the button (connecting to GND) is clearly detected as 0.</div>
+    </div>
+    <div class="callout good">
+      <strong>Why pull-up?</strong> Without a pull-up, an unconnected (floating) input pin reads random noise — sometimes 0, sometimes 1. The pull-up gives it a definite known state: HIGH when not pressed, LOW when pressed.
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-pin">READ</span> getButtonPressed() — Player 1</div>
+    <pre>int getButtonPressed() {
+  for (int i = 0; i &lt; NUM_OF_BTNS_PER_PLAYER; i++) {
+    if ((BTN_PIN &amp; (1 &lt;&lt; btns1[i])) == 0) {   // pin reads LOW = pressed
+      _delay_ms(DEBOUNCE_TIME);                 // wait 30ms
+      if ((BTN_PIN &amp; (1 &lt;&lt; btns1[i])) == 0) { // still pressed?
+        return i;                               // return button index 0-3
+      }
+    }
+  }
+  p1Released = true;
+  return -1;   // nothing pressed
+}</pre>
+    <div class="line-explain">
+      <div class="line-code">(BTN_PIN &amp; (1 &lt;&lt; btns1[i])) == 0</div>
+      <div class="line-text"><span class="tag tag-pin">PIN</span> Reads the physical state of pin <span class="inline-code">btns1[i]</span>. The <span class="inline-code">&amp;</span> masks away all other bits. If the result is 0, that pin is LOW = button is pressed (pull-up means pressed = 0).</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">_delay_ms(DEBOUNCE_TIME);<br>if (...) == 0) { return i; }</div>
+      <div class="line-text"><strong>Two-stage debounce:</strong> detect → wait 30ms → confirm. If the pin is still LOW after 30ms, the press is genuine (not bounce). Only then does it return the button index.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">p1Released = true;<br>return -1;</div>
+      <div class="line-text">If no button was pressed in the loop, mark Player 1 as released (used by modes that need to track button state across frames) and return <span class="inline-code">-1</span> as a sentinel meaning "no button pressed".</div>
+    </div>
+    <div class="callout">
+      <strong>Return value convention:</strong> Returns the <em>index</em> (0–3) of the button pressed, or <span class="inline-code">-1</span> for none. Callers check for <span class="inline-code">!= -1</span> to know if something was pressed.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ leds.ino ═══════════════════════════ -->
+<div class="file-section" id="leds">
+  <div class="file-header">
+    <div class="file-dot" style="background:#ffd060"></div>
+    <div>
+      <div class="filename" style="color:#ffd060">leds.ino</div>
+      <div class="file-desc">LED initialization and control via Port C</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">INIT</span> initializeLEDs()</div>
+    <pre>static const int LED_PINS[] = LED_ARRAY;  // {0, 1, 2, 3}
+
+void initializeLEDs() {
+  for (int i = 0; i &lt; NUM_OF_LEDS; i++) {
+    LED_DDR  |=  (1 &lt;&lt; LED_PINS[i]);   // set as OUTPUT
+    LED_PORT &amp;= ~(1 &lt;&lt; LED_PINS[i]);   // start LOW (off)
+  }
+}</pre>
+    <div class="line-explain">
+      <div class="line-code">static const int LED_PINS[] = LED_ARRAY;</div>
+      <div class="line-text"><span class="inline-code">static</span> means this array lives in memory for the whole program (not recreated each function call). <span class="inline-code">const</span> means it can't be modified. Expands to <span class="inline-code">{0, 1, 2, 3}</span> for Port C bits 0–3.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">LED_DDR |= (1 &lt;&lt; LED_PINS[i]);</div>
+      <div class="line-text"><span class="tag tag-ddr">DDR</span> <strong>Sets pin as OUTPUT.</strong> OR-ing 1 into the DDR bit makes the pin an output. Opposite of buttons — LEDs are outputs, buttons are inputs.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">LED_PORT &amp;= ~(1 &lt;&lt; LED_PINS[i]);</div>
+      <div class="line-text"><span class="tag tag-port">PORT</span> <strong>Ensures LED starts OFF.</strong> Clears the PORT bit so the pin outputs LOW (0V). The LED receives no current → is off at startup.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-port">CONTROL</span> turnOnAll / turnOffAll / turnOnRandomLED</div>
+    <div class="line-explain">
+      <div class="line-code">LED_PORT |= (1 &lt;&lt; LED_PINS[i]);</div>
+      <div class="line-text"><strong>Turn ON:</strong> Sets the PORT bit to 1 → pin outputs ~5V → current flows through LED → LED lights up.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">LED_PORT &amp;= ~(1 &lt;&lt; LED_PINS[i]);</div>
+      <div class="line-text"><strong>Turn OFF:</strong> Clears the PORT bit to 0 → pin outputs 0V → no current → LED off.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">int l = random(NUM_OF_LEDS);<br>turnOffAll();<br>LED_PORT |= (1 &lt;&lt; LED_PINS[l]);<br>return l;</div>
+      <div class="line-text"><strong>Random LED:</strong> Picks a random index 0–3, turns all LEDs off first (clean state), then turns on only the chosen one. Returns the index so the game knows which LED was lit (to compare with the player's button press).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ lcd_screen.ino ═══════════════════════════ -->
+<div class="file-section" id="lcd">
+  <div class="file-header">
+    <div class="file-dot" style="background:#c890ff"></div>
+    <div>
+      <div class="filename" style="color:#c890ff">lcd_screen.ino</div>
+      <div class="file-desc">All LCD display functions — init, scores, results, game-over</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">INIT</span> setup_LCD_SCREEN()</div>
+    <div class="line-explain">
+      <div class="line-code">extern int pass, fail, p1Score, p2Score;</div>
+      <div class="line-text"><span class="inline-code">extern</span> tells the compiler these variables exist <em>somewhere else</em> (in main_file.ino). This file can read and write them without redefining them.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">lcd.init();</div>
+      <div class="line-text">Sends the initialization sequence to the LCD controller over I²C. Without this, the screen won't respond to any commands.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">lcd.backlight();</div>
+      <div class="line-text">Turns on the LCD's LED backlight. Only needed for real hardware (SimulIDE doesn't have a backlight).</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">lcd.setCursor(0, 0);<br>lcd.print("EL3AB YA MA3ALIM");</div>
+      <div class="line-text">Moves the cursor to column 0, row 0 (top-left), then prints the welcome message. This stays on screen for 1 second before clearing.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">lcd.setCursor(0, 0); lcd.print("P1:");<br>lcd.setCursor(10, 0); lcd.print("P2:");</div>
+      <div class="line-text">Prints the score labels. P1 is at column 0, P2 is at column 10 — they share row 0 as a persistent score display throughout Modes 2 and 3.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">DISPLAY</span> Screen update functions</div>
+    <div class="line-explain">
+      <div class="line-code">void updateScores()</div>
+      <div class="line-text">Moves the cursor to column 3 (right after "P1:") and prints the current p1Score, then does the same at column 13 for p2Score. The space after the number (<span class="inline-code">lcd.print(" ")</span>) overwrites old digits (e.g. if score goes from 10 to 9, the trailing space clears the extra digit).</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">void displayRoundResult(const char* msg)</div>
+      <div class="line-text">Takes a string pointer. First overwrites row 1 with spaces (clears it), then prints the message. The constant-width space clear avoids LCD ghost characters from shorter messages overwriting longer ones.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">void displayGameOver()</div>
+      <div class="line-text">Compares p1Score and p2Score and shows the winner, or "It's a Draw!" on row 0. Row 1 shows the final numeric scores. Called at the end of every mode before returning to the menu.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">void loop_LCD_SCREEN_mode1()</div>
+      <div class="line-text">Mode 1's custom end screen — shows Pass count and Fail count instead of a winner, since Solo mode has no opponent.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ menu.ino ═══════════════════════════ -->
+<div class="file-section" id="menu">
+  <div class="file-header">
+    <div class="file-dot" style="background:#00e5ff"></div>
+    <div>
+      <div class="filename" style="color:#00e5ff">menu.ino</div>
+      <div class="file-desc">Mode selection screen — displays options, reads P1 button, sets currentState</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-flow">FLOW</span> menuFunction()</div>
+    <div class="line-explain">
+      <div class="line-code">extern int currentState;</div>
+      <div class="line-text">References the global state variable from main_file.ino. This function is the only place that changes currentState based on player input.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">lcd.setCursor(0,0); lcd.print("1:Solo  2:Duel      ");<br>lcd.setCursor(0,1); lcd.print("3:Challenger            ");</div>
+      <div class="line-text">Displays the menu every time this function is called (i.e., every call to loop() while in state 0). This is intentional — the LCD might need redrawing after returning from a mode.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">int btn = getButtonPressed();</div>
+      <div class="line-text">Reads Player 1's buttons. Returns 0, 1, 2, or 3 (or -1 if nothing pressed). Button 0 → Solo, Button 1 → Duel, Button 2 → Challenger.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (btn == 0) currentState = 1;<br>else if (btn == 1) currentState = 2;<br>else if (btn == 2) currentState = 3;</div>
+      <div class="line-text">Maps physical button index to game state. After this sets <span class="inline-code">currentState</span>, menuFunction returns, loop() returns, Arduino calls loop() again, and now the switch-case jumps to the selected mode.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">lcd.clear(); _delay_ms(300);</div>
+      <div class="line-text">Clears the menu from the screen before the game mode starts drawing its own UI. The 300ms wait prevents the button press from also registering as an input in the game mode (extra debounce at the transition point).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ mode_1.ino ═══════════════════════════ -->
+<div class="file-section" id="mode1">
+  <div class="file-header">
+    <div class="file-dot" style="background:#a8ff78"></div>
+    <div>
+      <div class="filename" style="color:#a8ff78">mode_1.ino — Solo Mode</div>
+      <div class="file-desc">Single-player Simon Says: watch the LED sequence, repeat it with buttons</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">LOOP</span> Main game loop</div>
+    <pre>while (pass + fail &lt; NUM_OF_ITERATIONS) {
+  ...
+}</pre>
+    <div class="line-explain">
+      <div class="line-code">while (pass + fail &lt; NUM_OF_ITERATIONS)</div>
+      <div class="line-text">The game runs until the player has completed 5 rounds total (pass + fail = 5). Whether you win or lose a round, it counts. The while loop keeps the game going until all rounds are done.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">long start_t = millis();</div>
+      <div class="line-text">Records the timestamp (in ms since power-on) at the start of each round. Used later to compute how long the player took to answer.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">PHASE 1</span> Generate and show LED sequence</div>
+    <div class="line-explain">
+      <div class="line-code">for (i = 0; i &lt; difficulty_level; i++)<br>  LED_Sequance[i] = random(NUM_OF_LEDS);</div>
+      <div class="line-text">Fills the sequence array with <span class="inline-code">difficulty_level</span> random numbers (0–3), each representing one of the 4 LEDs. The array is used twice: once to show the player, once to check their input.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">for (i = 0; i &lt; difficulty_level; i++) {<br>  LED_PORT |= (1 &lt;&lt; LED_Sequance[i]);<br>  _delay_ms(BlinkTime);<br>  turnOffAll();<br>  _delay_ms(400);<br>}</div>
+      <div class="line-text">Shows each LED in the sequence for 500ms, then turns all off for 400ms before the next. The 400ms gap makes each step visually distinct so the player can count them.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">PHASE 2</span> Collect player input</div>
+    <div class="line-explain">
+      <div class="line-code">while (getButtonPressed() != -1) { _delay_ms(10); }</div>
+      <div class="line-text"><strong>Wait for release before each step.</strong> If the player is still holding from the previous input, this loop spins until they let go. Prevents one hold registering as multiple presses.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">while (btn == -1) { btn = getButtonPressed(); }</div>
+      <div class="line-text"><strong>Wait for a press.</strong> Spins doing nothing until the player presses a button. When a button is pressed, <span class="inline-code">getButtonPressed()</span> returns 0–3 and the inner loop exits.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (btn != LED_Sequance[i]) {<br>  difficulty_level = DIFFICULTY_LEVEL;<br>  fail++; break;<br>}</div>
+      <div class="line-text"><strong>Wrong button:</strong> resets difficulty back to 3 (you lose your streak), increments fail, and <span class="inline-code">break</span> exits the input-collection for-loop immediately. The outer while loop sees fail++ and continues to the next round.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (i == difficulty_level) { ... pass++; difficulty_level++; }</div>
+      <div class="line-text"><strong>All correct:</strong> After the for-loop, if <span class="inline-code">i</span> reached <span class="inline-code">difficulty_level</span> without a break, all answers were correct. <span class="inline-code">pass++</span> records the win. <span class="inline-code">difficulty_level++</span> makes the next round one step longer.</div>
+    </div>
+    <div class="callout warn">
+      <strong>The break/i trick:</strong> The for-loop variable <span class="inline-code">i</span> is declared <em>outside</em> the loop (<span class="inline-code">int i;</span> at the top of the function). If a <span class="inline-code">break</span> happens mid-loop, <span class="inline-code">i</span> is less than <span class="inline-code">difficulty_level</span>. If no break, <span class="inline-code">i == difficulty_level</span> means all steps were correct. This is how the code detects success vs failure without a separate boolean flag.
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-flow">END</span> Summary and return</div>
+    <div class="line-explain">
+      <div class="line-code">loop_LCD_SCREEN_mode1();<br>delay(3000);<br>// returns here</div>
+      <div class="line-text">After the while loop ends (5 rounds done), shows the pass/fail summary on the LCD for 3 seconds. Then <span class="inline-code">playmode1()</span> simply returns — execution goes back to <span class="inline-code">case 1:</span> in main loop(), which sets <span class="inline-code">currentState = 0</span> and breaks → menu.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ mode_2.ino ═══════════════════════════ -->
+<div class="file-section" id="mode2">
+  <div class="file-header">
+    <div class="file-dot" style="background:#ff6b35"></div>
+    <div>
+      <div class="filename" style="color:#ff6b35">mode_2.ino — Duel Mode</div>
+      <div class="file-desc">Two players race to enter the same LED sequence simultaneously</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">CONCEPT</span> How Duel works</div>
+    <p class="explain">Both players see the same LED sequence. Then both start entering it at the same time. The first to finish the full correct sequence wins the round. If either player presses the wrong button, they are eliminated from that round. The game tracks time to break ties when both finish correctly.</p>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">LOOP</span> Outer round loop</div>
+    <div class="line-explain">
+      <div class="line-code">int difficulty_level = DIFFICULTY_LEVEL;<br>int rounds = 0;</div>
+      <div class="line-text">These are <em>local</em> variables, not the global ones from main_file. Mode 2 manages its own difficulty independently. Rounds count from 0 to NUM_OF_ITERATIONS-1.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">while (rounds &lt; NUM_OF_ITERATIONS)</div>
+      <div class="line-text">Runs exactly 5 rounds. Unlike Mode 1 which ends when pass+fail=5, here rounds is always incremented at the end of every round, so exactly 5 always happen.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">CONCURRENT INPUT</span> The simultaneous input loop</div>
+    <pre>while (true) {
+  if (millis() - startTime >= ROUND_TIMEOUT) break; // timeout
+  int btn1 = getButtonPressed();
+  int btn2 = getPlayer2Button();
+  ...
+  if (p1Finished || p2Finished) break;
+  if (p1Eliminated &amp;&amp; p2Eliminated) break;
+}</pre>
+    <div class="line-explain">
+      <div class="line-code">while (true)</div>
+      <div class="line-text"><strong>Infinite loop</strong> that only exits via <span class="inline-code">break</span>. This is the core of the concurrent input system — it keeps polling both players on every iteration until an exit condition is met.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (millis() - startTime >= ROUND_TIMEOUT) break;</div>
+      <div class="line-text">Timeout safety. If 15 seconds pass without a winner, the round ends automatically. <span class="inline-code">millis()</span> returns ms since startup; subtracting the start time gives elapsed time for this round.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">bool released1 = true;<br>bool released2 = true;</div>
+      <div class="line-text">Button release trackers, initialized before the concurrent loop. When a button is released (<span class="inline-code">btn == -1</span>), released is set to true. A new press is only processed if the button was previously released — prevents holding a button to spam inputs.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (!p1Eliminated &amp;&amp; !p1Finished &amp;&amp; btn1 != -1 &amp;&amp; released1) {<br>  released1 = false;<br>  if (btn1 == LED_Sequence[i1]) { i1++; ... }<br>  else { p1Eliminated = true; }<br>}</div>
+      <div class="line-text">Player 1 input block. Four conditions must all be true: player not eliminated, not finished, a button is pressed, and it's a fresh press (not a hold). If correct, i1 advances. If wrong, player is eliminated for this round. Same logic exists for Player 2 with i2 and p2Eliminated.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (i1 == difficulty_level) { p1Finished = true; p1FinishTime = now - startTime; }</div>
+      <div class="line-text">When a player's index reaches the sequence length, they've completed all steps correctly. Their finish time is recorded (elapsed ms) so it can be compared if both finish.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (p1Finished || p2Finished) break;<br>if (p1Eliminated &amp;&amp; p2Eliminated) break;</div>
+      <div class="line-text">Exit conditions: if <em>anyone</em> finishes, stop immediately (no need to wait for the other). If <em>both</em> are eliminated, also stop (no winner possible).</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-flow">RESULT</span> Determining the winner</div>
+    <div class="line-explain">
+      <div class="line-code">if (p1Finished &amp;&amp; p2Finished) {<br>  if (p1FinishTime &lt; p2FinishTime) p1Score++;<br>  else if p2FinishTime &lt; p1FinishTime) p2Score++;<br>  else result = "Dead Tie!";<br>}</div>
+      <div class="line-text">If both finished, the faster one wins (compared in milliseconds). A tie is possible but rare. If only one finished, they win the round unconditionally.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (p1Finished || p2Finished) difficulty_level++;<br>else difficulty_level = DIFFICULTY_LEVEL;</div>
+      <div class="line-text">Difficulty increases only if someone actually finished the sequence. If both were eliminated or timed out (no winner), difficulty resets to keep the game fair.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ mode_3.ino ═══════════════════════════ -->
+<div class="file-section" id="mode3">
+  <div class="file-header">
+    <div class="file-dot" style="background:#c890ff"></div>
+    <div>
+      <div class="filename" style="color:#c890ff">mode_3.ino — Challenger Mode</div>
+      <div class="file-desc">Turn-based: one player sets the sequence, the other must replicate it</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">CONCEPT</span> How Challenger works</div>
+    <p class="explain">Players alternate being the Challenger (sets the secret sequence) and the Defender (tries to replicate it). If the Defender succeeds → Defender gets a point. If they fail → the Challenger must prove they can do it themselves. If the Challenger also fails → no points (you can't lie). Roles swap every round.</p>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-init">HELPER</span> getActivePlayerButton()</div>
+    <div class="line-explain">
+      <div class="line-code">static int getActivePlayerButton(int playerNum) {<br>  if (playerNum == 1) { ... BTN_PIN ... }<br>  else { ... BTN_2_PIN ... }<br>}</div>
+      <div class="line-text">A unified button reader. Takes a player number (1 or 2) and reads the correct PIN register. This avoids code duplication — instead of two separate functions for each player, one function handles both based on the argument.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">static</div>
+      <div class="line-text"><span class="inline-code">static</span> on a function limits its visibility to this file only (file-scope). It's a safety measure — other .ino files can't accidentally call this internal helper.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (!(BTN_PIN &amp; (1 &lt;&lt; btns[i]))) return i;</div>
+      <div class="line-text">The <span class="inline-code">!</span> inverts the result of the bit-AND. If the pin is 0 (pressed), the AND result is 0, which is falsy, and <span class="inline-code">!</span> makes it true → return that button index. Equivalent to <span class="inline-code">== 0</span> check but slightly more compact.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">FUNCTION</span> enterSequence() — Challenger sets the code</div>
+    <div class="line-explain">
+      <div class="line-code">static int secretSequence[DIFFICULTY_LEVEL];</div>
+      <div class="line-text">A file-scope static array. Stores the sequence the Challenger presses. <span class="inline-code">static</span> here means it persists across function calls (it's not on the stack). Both <span class="inline-code">enterSequence</span> and <span class="inline-code">replicateSequence</span> use it.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">for (int i = 0; i &lt; DIFFICULTY_LEVEL; i++) {<br>  int btn = -1;<br>  while (btn == -1) { btn = getActivePlayerButton(playerNum); }<br>  secretSequence[i] = btn;<br>  LED_PORT |= (1 &lt;&lt; btn); _delay_ms(300); turnOffAll();<br>  waitForPlayerRelease(playerNum);<br>}</div>
+      <div class="line-text">For each step: wait for the challenger to press a button, store it in secretSequence, flash the corresponding LED (feedback), then wait for release before accepting the next press. This prevents one long press from filling multiple slots.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-loop">FUNCTION</span> replicateSequence() — Defender tries to copy</div>
+    <div class="line-explain">
+      <div class="line-code">static bool replicateSequence(int playerNum)</div>
+      <div class="line-text">Returns <span class="inline-code">true</span> if successful, <span class="inline-code">false</span> if wrong or timed out. The bool return is how the caller (<span class="inline-code">runChallengerMode</span>) knows who gets the point.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (millis() - startTime >= ROUND_TIMEOUT) return false;</div>
+      <div class="line-text">Timeout check inside the button-wait loop. If 15 seconds pass, returns false immediately — no partial credit for getting some steps right.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (btn != secretSequence[i]) return false;</div>
+      <div class="line-text">Wrong button at any step → immediately return false. There's no recovery; you must get the entire sequence perfectly.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">return true;</div>
+      <div class="line-text">Only reached if the for-loop completes without any early return — all steps were correct. The caller awards a point to this player.</div>
+    </div>
+  </div>
+  <div class="block">
+    <div class="block-title"><span class="tag tag-flow">MAIN</span> runChallengerMode() — round management</div>
+    <div class="line-explain">
+      <div class="line-code">bool p1IsChallenger = true;</div>
+      <div class="line-text">Tracks whose turn it is to be the Challenger. Starts as Player 1 on round 1. Toggled with <span class="inline-code">p1IsChallenger = !p1IsChallenger</span> after every round.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">int challenger = p1IsChallenger ? 1 : 2;<br>int defender = p1IsChallenger ? 2 : 1;</div>
+      <div class="line-text">Derives the actual player numbers from the boolean flag. Ternary operator: if p1IsChallenger is true → challenger=1, defender=2. Next round they swap.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">enterSequence(challenger);</div>
+      <div class="line-text">Challenger presses their secret sequence. The sequence is saved in <span class="inline-code">secretSequence[]</span>.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">// Flash the sequence for the defender to watch<br>for (int i = 0; i &lt; DIFFICULTY_LEVEL; i++) {<br>  LED_PORT |= (1 &lt;&lt; secretSequence[i]);<br>  _delay_ms(BlinkTime);<br>  turnOffAll(); _delay_ms(200);<br>}</div>
+      <div class="line-text">After the Challenger enters the sequence, it's replayed on the LEDs so the Defender can memorize it. The Defender watches, not presses.</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">if (replicateSequence(defender)) {<br>  // defender scores<br>} else {<br>  // challenger must prove it<br>  if (replicateSequence(challenger)) { // challenger scores }<br>  else { // liar! no points }<br>}</div>
+      <div class="line-text">The complete scoring logic: Defender succeeds → Defender gets a point. Defender fails → Challenger must prove they CAN do it. Challenger proves it → Challenger gets the point (they set a valid challenge). Challenger also fails → no points (the sequence was impossible or forgotten).</div>
+    </div>
+    <div class="line-explain">
+      <div class="line-code">p1IsChallenger = !p1IsChallenger;</div>
+      <div class="line-text">Flips the boolean: true → false → true. This swaps roles every round so both players spend equal time as Challenger and Defender over 5 rounds.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+<div style="text-align:center; padding: 40px 0 10px; color: var(--dim); font-size:0.78rem; font-family:'JetBrains Mono',monospace;">
+  ◈ Complete code explanation — 10 files · AVR ATmega328 · Arduino ◈
+</div>
+
+</div><!-- /container -->
+</body>
+</html>
