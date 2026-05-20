@@ -103,6 +103,6 @@ The system runs on a **finite state machine** with three states:
 
 <div align="center">
 
-*Built with buttons, LEDs, and a lot of debouncing.*
+
 
 </div>
